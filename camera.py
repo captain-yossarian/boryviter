@@ -1,6 +1,9 @@
 from picamera2 import Picamera2, Preview
 import cv2
 
+width = 640
+height = width / 2
+
 
 class Camera:
     def __init__(self):
