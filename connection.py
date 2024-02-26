@@ -16,7 +16,7 @@ class Connection:
     def __init__(self, connection: Literal["rpi", "simulator"]):
         connection_string = (
             rpi_connection_string
-            if connection is "rpi"
+            if connection == "rpi"
             else simulator_connection_string
         )
         print(f"connection: {connection_string}")
@@ -31,7 +31,6 @@ class Connection:
             % (self.connection.target_system, self.connection.target_component)
         )
         msg = self.connection.recv_match(blocking=True)
-        print(f"msg:{msg}")
 
     def send(self, command, args):
         self.connection.mav.command_long_send(
@@ -41,7 +40,9 @@ class Connection:
             *args,
         )
         msg = self.connection.recv_match(type="COMMAND_ACK", blocking=True)
-        print(msg)
+        if msg is not None:
+            if msg.result == 0:
+                print(f"Command: ${command} is success")
 
     def send_log(self):
         self.connection.mav.statustext_send(
@@ -62,9 +63,6 @@ class Connection:
                 0,
             ],
         )
-
-        msg = self.connection.recv_match(type="COMMAND_ACK", blocking=True)
-        print(msg)
 
     # Turn relatively to 0
     def turn(self, angle):
@@ -123,7 +121,7 @@ class Connection:
             return [roll, pitch, yaw]
         else:
             print("Failed to retrieve current rotation angle.")
-            return [0, 0, 0]
+            return [0, 0, 10]
 
     def turn_from(self, direction: Literal[-1, 0, 1]):
         roll, pitch, yaw = self.get_current_rotation()
@@ -131,13 +129,63 @@ class Connection:
             _.MAV_CMD_CONDITION_YAW,
             [
                 0,
-                yaw + (10 * direction),
+                yaw + direction * 10,
                 # Speed during yaw change:[deg per second].
-                0,
+                10,
                 direction,
                 0,
                 0,
                 0,
                 0,
             ],
+        )
+
+    def fly_forward(self):
+        # Send velocity command to fly forward (e.g., 1 m/s)
+        vx = 1  # Velocity in x-direction (forward)
+        vy = 0  # Velocity in y-direction (sideways)
+        vz = 0  # Velocity in z-direction (vertical)
+        yaw = 0  # Yaw angle (in radians)
+        duration = 10  # Duration to fly forward (in seconds)
+        self.connection.mav.send(
+            mavutil.mavlink.MAVLink_set_position_target_local_ned_message(
+                10,
+                self.connection.target_system,
+                self.connection.target_component,
+                mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+                int(0b010111111000),
+                40,
+                0,
+                -10,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1.57,
+                0.5,
+            )
+        )
+
+    def position(self):
+        self.connection.mav.send(
+            mavutil.mavlink.MAVLink_set_position_target_global_int_message(
+                10,
+                self.connection.target_system,
+                self.connection.target_component,
+                mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+                int(0b110111111000),
+                int(-35.3629849 * 10**7),
+                int(149.1649185 * 10**7),
+                2,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1.57,
+                0.5,
+            )
         )

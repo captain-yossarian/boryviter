@@ -1,6 +1,10 @@
+import time
 from connection import Connection
 
+print("connection to RPI")
 connection = Connection("simulator")
-# connection.arm()
-# connection.takeoff(3)
-connection.get_current_rotation()
+time.sleep(1)
+connection.position()
+time.sleep(1)
+
+print("Learning model loaded")
