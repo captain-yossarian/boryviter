@@ -3,8 +3,9 @@ from connection import Connection
 
 print("connection to RPI")
 connection = Connection("simulator")
-time.sleep(1)
-connection.position()
-time.sleep(1)
+
+
+connection.fly_forward()
+
 
 print("Learning model loaded")

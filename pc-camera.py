@@ -3,10 +3,10 @@ import cv2
 import math
 import time
 
-from constants import classNames
+# from constants import classNames
 from utils import calculate_centers
 
-print(classNames)
+# print(classNames)
 
 
 cap = cv2.VideoCapture(0)
@@ -30,14 +30,9 @@ while True:
             w, h = x2 - x1, y2 - y1
 
             # Calculate centers
+            # direction = calculate_centers(img_width, x1, x2)
             screen_center_x, person_center_x = calculate_centers(img_width, x1, x2)
 
             cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
     cv2.imshow("Image", img)
-
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
-
-cap.release()
-cv2.destroyAllWindows()

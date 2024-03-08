@@ -140,7 +140,8 @@ class Connection:
             ],
         )
 
-    def fly_forward(self):
+    # https://ardupilot.org/dev/docs/copter-commands-in-guided-mode.html#set-position-target-local-ned
+    def fly_forward(self, forward_meters):
         # Send velocity command to fly forward (e.g., 1 m/s)
         vx = 1  # Velocity in x-direction (forward)
         vy = 0  # Velocity in y-direction (sideways)
@@ -152,21 +153,25 @@ class Connection:
                 10,
                 self.connection.target_system,
                 self.connection.target_component,
-                mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-                int(0b010111111000),
-                40,
-                0,
-                -10,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                1.57,
-                0.5,
+                # Positions are relative to the vehicle’s current position
+                # use MAV_FRAME_LOCAL_NED for absolute position
+                mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED,
+                int(0b110111111000),
+                forward_meters,  # X Position in meters (positive is forward or North)
+                0,  # X Position in meters (positive is forward or North)
+                -1,  # Z Position in meters (positive is down)
+                0,  # X velocity in m/s (positive is forward or North)
+                0,  # Y velocity in m/s (positive is right or East)
+                0,  # Z velocity in m/s (positive is down)
+                0,  # 	X acceleration in m/s/s (positive is forward or North)
+                0,  # Y acceleration in m/s/s (positive is right or East)
+                0,  # 	Z acceleration in m/s/s (positive is down)
+                0,  # 	yaw or heading in radians (0 is forward or North)
+                0,  # yaw rate in rad/s
             )
         )
+        msg = self.connection.recv_match(type="COMMAND_ACK", blocking=True)
+        print(msg)
 
     def position(self):
         self.connection.mav.send(
@@ -189,3 +194,5 @@ class Connection:
                 0.5,
             )
         )
+        msg = self.connection.recv_match(type="COMMAND_ACK", blocking=True)
+        print(msg)
