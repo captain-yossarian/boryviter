@@ -6,7 +6,7 @@ import time
 # "/dev/serial0",baud=921600,source_system=1
 rpi_connection_string = "/dev/serial0"
 simulator_connection_string = "udpin:localhost:14550"
-
+baud_rate = 57600
 _ = mavutil.mavlink
 
 
@@ -19,9 +19,9 @@ class Connection:
             if connection == "rpi"
             else simulator_connection_string
         )
-        print(f"connection: {connection_string}")
+        print(f"connection: {connection_string}, baud:{baud_rate}")
         self.connection = mavutil.mavlink_connection(
-            connection_string, baud=921600, source_system=1
+            connection_string, baud=baud_rate, source_system=1
         )
         print("Wait heartbeat")
         self.connection.wait_heartbeat()
@@ -125,6 +125,7 @@ class Connection:
 
     def turn_from(self, direction: Literal[-1, 0, 1]):
         roll, pitch, yaw = self.get_current_rotation()
+        print(f"rotation:    {yaw}")
         self.send(
             _.MAV_CMD_CONDITION_YAW,
             [
