@@ -26,11 +26,52 @@ class Connection:
         print("Wait heartbeat")
         self.connection.wait_heartbeat()
 
+        self.connection.mav.request_data_stream_send(
+            self.connection.target_system,
+            self.connection.target_component,
+            mavutil.mavlink.MAV_DATA_STREAM_ALL,
+            baud_rate,
+            1,
+        )
+
+        message = self.connection.mav.command_long_encode(
+            self.connection.target_system,  # Target system ID
+            self.connection.target_component,  # Target component ID
+            mavutil.mavlink.MAV_CMD_SET_MESSAGE_INTERVAL,  # ID of command to send
+            0,  # Confirmation
+            mavutil.mavlink.MAVLINK_MSG_ID_BATTERY_STATUS,  # param1: Message ID to be streamed
+            1000000,  # param2: Interval in microseconds
+            0,  # param3 (unused)
+            0,  # param4 (unused)
+            0,  # param5 (unused)
+            0,  # param5 (unused)
+            0,  # param6 (unused)
+        )
+
         print(
             "Heartbeat from system (system %u component %u)"
             % (self.connection.target_system, self.connection.target_component)
         )
         msg = self.connection.recv_match(blocking=True)
+
+        self.connection.mav.request_data_stream_send(
+            self.connection.target_system,  # Target system ID
+            self.connection.target_component,  # Target component ID
+            _.MAV_DATA_STREAM_ALL,  # Request all data streams
+            10,  # Request at 10 Hz (you can adjust this frequency as needed)
+            1,  # Start sending immediately
+        )
+
+    def read_loop(self):
+        while True:
+
+            # grab a mavlink message
+            msg = self.connection.recv_match(blocking=False)
+            if not msg:
+                return
+
+            # handle the message based on its type
+            msg_type = msg.get_type()
 
     def send(self, command, args):
         self.connection.mav.command_long_send(
@@ -39,7 +80,7 @@ class Connection:
             command,
             *args,
         )
-        msg = self.connection.recv_match(type="COMMAND_ACK", blocking=True)
+        msg = self.connection.recv_match(type="COMMAND_ACK", blocking=False)
         if msg is not None:
             if msg.result == 0:
                 print(f"Command: ${command} is success")
@@ -112,8 +153,9 @@ class Connection:
 
     # Returns rotation angle relatively to initial copter position
     def get_current_rotation(self):
-        msg = self.connection.recv_match(type="ATTITUDE", blocking=True)
-
+        print("GET YAW")
+        msg = self.connection.recv_match(type="ATTITUDE", blocking=False)
+        print("YAW RECEIVED")
         if msg:
             roll = math.degrees(msg.roll)
             pitch = math.degrees(msg.pitch)
@@ -121,20 +163,24 @@ class Connection:
             return [roll, pitch, yaw]
         else:
             print("Failed to retrieve current rotation angle.")
-            return [0, 0, 10]
+            return [0, 0, 0]
 
     def turn_from(self, direction: Literal[-1, 0, 1]):
         roll, pitch, yaw = self.get_current_rotation()
-        print(f"rotation:    {yaw}")
+        print(f"yaw: {yaw}")
+        if direction == -1:
+            print("rotate left")
+        if direction == 1:
+            print("rotate right")
+
         self.send(
             _.MAV_CMD_CONDITION_YAW,
             [
                 0,
-                yaw + direction * 10,
-                # Speed during yaw change:[deg per second].
-                10,
-                direction,
-                0,
+                yaw + 10,  # degrees
+                20,  # Speed during yaw change:[deg per second].
+                direction,  # direction [-1 0 1]
+                1,  # absolute=0 or relative=1
                 0,
                 0,
                 0,
@@ -160,7 +206,7 @@ class Connection:
                 int(0b110111111000),
                 forward_meters,  # X Position in meters (positive is forward or North)
                 0,  # X Position in meters (positive is forward or North)
-                -1,  # Z Position in meters (positive is down)
+                0,  # Z Position in meters (positive is down)
                 0,  # X velocity in m/s (positive is forward or North)
                 0,  # Y velocity in m/s (positive is right or East)
                 0,  # Z velocity in m/s (positive is down)
@@ -171,8 +217,8 @@ class Connection:
                 0,  # yaw rate in rad/s
             )
         )
-        msg = self.connection.recv_match(type="COMMAND_ACK", blocking=True)
-        print(msg)
+        # msg = self.connection.recv_match(type="COMMAND_ACK", blocking=True)
+        # print(msg)
 
     def position(self):
         self.connection.mav.send(

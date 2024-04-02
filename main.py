@@ -21,10 +21,7 @@ camera.start()
 print("connection to RPI")
 connection = Connection("rpi")
 model = YOLO("../YOLO Weights/yolov8n.pt")
-connection.arm()
-time.sleep(2)
-connection.takeoff(1)
-time.sleep(2)
+
 
 print("Learning model loaded")
 while True:
@@ -42,16 +39,15 @@ while True:
             cvzone.cornerRect(img, (x1, y1, w, h))
             conf = math.ceil((box.conf[0] * 100)) / 100
             direction = calculate_centers(640, x1, x2)
-            print(f"direction:{direction}")
-
-            connection.turn_from(direction)
-
             cls = box.cls[0]
-            name = "person"
+            index = int(cls)
+            print(f"index: {index}")
+            if index == 0 and direction != 0:
+                connection.turn_from(direction)
 
-            cvzone.putTextRect(
-                img, f"{name} " f"{conf}", (max(0, x1), max(35, y1)), scale=2
-            )
+            # cvzone.putTextRect(
+            #     img, f"{name} " f"{conf}", (max(0, x1), max(35, y1)), scale=2
+            # )
 
     # cv2.imshow("Image", img)
     # cv2.waitKey(1)
