@@ -203,18 +203,18 @@ class Connection:
                 # Positions are relative to the vehicle’s current position
                 # use MAV_FRAME_LOCAL_NED for absolute position
                 mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED,
-                int(0b110111111000),
-                forward_meters,  # X Position in meters (positive is forward or North)
-                0,  # X Position in meters (positive is forward or North)
-                0,  # Z Position in meters (positive is down)
-                0,  # X velocity in m/s (positive is forward or North)
-                0,  # Y velocity in m/s (positive is right or East)
-                0,  # Z velocity in m/s (positive is down)
-                0,  # 	X acceleration in m/s/s (positive is forward or North)
-                0,  # Y acceleration in m/s/s (positive is right or East)
-                0,  # 	Z acceleration in m/s/s (positive is down)
-                0,  # 	yaw or heading in radians (0 is forward or North)
-                0,  # yaw rate in rad/s
+                int(0b010111111000),
+                5,  # fly forward in meters
+                0,
+                -1,  # height, negativs is positive
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
             )
         )
         # msg = self.connection.recv_match(type="COMMAND_ACK", blocking=True)

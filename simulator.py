@@ -1,11 +1,16 @@
 import time
 from connection import Connection
 
-print("connection to RPI")
+
+def first_arm():
+    connection.arm()
+    time.sleep(5)
+    connection.takeoff(10)
+    time.sleep(2)
+
+
 connection = Connection("simulator")
-
-print("turn")
-connection.turn_from(-1)
-
-
-print("Learning model loaded")
+# first_arm()
+# connection.turn_from(1)
+connection.fly_forward(10)
+# time.sleep(2)
