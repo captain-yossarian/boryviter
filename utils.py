@@ -6,8 +6,8 @@ def calculate_centers(img_width, x1, x2) -> Literal[-1, 0, 1]:
     person_center_x = (x1 + x2) // 2
 
     if person_center_x - 100 > screen_center_x:
-        return 1
+        return "left"
     elif person_center_x + 100 < screen_center_x:
-        return -1
+        return "right"
     else:
-        return 0
+        return "center"
