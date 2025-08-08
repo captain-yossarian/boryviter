@@ -19,4 +19,6 @@ pyenv install 3.6
 pyenv versions
 pyenv local 3.6.15
 
+pip install dronekit-sitl
+
 pip install pymavlink==2.4.8
